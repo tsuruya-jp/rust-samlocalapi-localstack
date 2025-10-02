@@ -1,0 +1,142 @@
+openapi: 3.0.0
+info:
+  title: Rust SAM Local API
+  description: API for Rust Lambda function with LocalStack
+  version: 1.0.0
+
+servers:
+  - url: https://127.0.0.1:3000
+    description: sam local server
+
+paths:
+  /:
+    get:
+      summary: Get all users
+      description: Retrieves all users from the DynamoDB users table
+      operationId: getUsers
+      responses:
+        '200':
+          description: Successful response with list of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  count:
+                    type: integer
+                    description: Total number of users
+                    example: 1
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetFunction.Arn}/invocations
+        httpMethod: POST
+        type: aws_proxy
+
+    post:
+      summary: Create a new user
+      description: Creates a new user in the DynamoDB users table
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User created successfully"
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request - Invalid input or missing body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PostFunction.Arn}/invocations
+        httpMethod: POST
+        type: aws_proxy
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        user_id:
+          type: string
+          description: Unique user identifier
+          example: "001"
+        name:
+          type: string
+          description: User's name
+          example: "田中太郎"
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "tanaka@example.com"
+      required:
+        - user_id
+        - name
+        - email
+
+    UserInput:
+      type: object
+      properties:
+        user_id:
+          type: string
+          description: Unique user identifier
+          example: "001"
+        name:
+          type: string
+          description: User's name
+          example: "田中太郎"
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "tanaka@example.com"
+      required:
+        - user_id
+        - name
+        - email
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error type or title
+          example: "Failed to get users"
+        message:
+          type: string
+          description: Detailed error message
+          example: "Connection timeout"
+      required:
+        - error

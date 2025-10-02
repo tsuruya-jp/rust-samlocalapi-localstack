@@ -1,0 +1,12 @@
+services:
+  localstack:
+    image: localstack/localstack:latest
+    ports:
+    - "4566:4566"
+    environment:
+    - SERVICES=dynamodb
+    - AWS_ACCESS_KEY_ID=dummy
+    - AWS_SECRET_ACCESS_KEY=dummy
+    - AWS_DEFAULT_REGION=ap-northeast-1
+    volumes:
+    - "./scripts:/etc/localstack/init/ready.d"

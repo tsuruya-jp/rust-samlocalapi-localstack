@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Rust Lambda Function with LocalStack
+
+Globals:
+  Function:
+    Runtime: provided.al2023
+    Architectures:
+      - x86_64
+    Tracing: Active
+    CodeUri: ./
+    Handler: bootstrap
+    Timeout: 30
+    MemorySize: 128
+    Environment:
+      Variables:
+        RUST_BACKTRACE: 1
+
+Resources:
+  GetFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: rust-cargolambda
+      BuildProperties:
+        Binary: get_function
+    Properties:
+      Events:
+        GetRoot:
+          Type: Api
+          Properties:
+            Path: /
+            Method: GET
+
+  PostFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: rust-cargolambda
+      BuildProperties:
+        Binary: post_function
+    Properties:
+      Events:
+        PostRoot:
+          Type: Api
+          Properties:
+            Path: /
+            Method: POST
